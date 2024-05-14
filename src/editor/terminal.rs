@@ -1,4 +1,3 @@
-use crossterm::event;
 use crossterm::execute;
 use crossterm::cursor::MoveTo;
 use crossterm::terminal;
@@ -20,10 +19,6 @@ impl Terminal {
 
     pub fn clear_screen() -> Result<(), Error> {
         execute!(stdout(), terminal::Clear(terminal::ClearType::All))
-    }
-
-    pub fn read() -> Result<event::Event, Error> {
-        event::read()
     }
 
     pub fn size() -> Result<(u16, u16), Error> {

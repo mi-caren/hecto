@@ -3,8 +3,11 @@ mod terminal;
 use terminal::Terminal;
 
 use std::io::Error;
+use std::io::stdout;
 
-use crossterm::event::{Event, Event::Key, KeyCode::Char, KeyEvent, KeyModifiers};
+use crossterm::cursor::{Hide, Show};
+use crossterm::event::{read, Event, Event::Key, KeyCode::Char, KeyEvent, KeyModifiers};
+use crossterm::execute;
 
 
 
@@ -32,7 +35,7 @@ impl Editor {
                 break;
             }
 
-            let event = Terminal::read()?;
+            let event = read()?;
             self.evaluate_event(&event);
         }
 
@@ -54,6 +57,8 @@ impl Editor {
     }
 
     fn refresh_screen(&self) -> Result<(), std::io::Error> {
+        execute!(stdout(), Hide)?;
+
         if self.should_quit {
             Terminal::clear_screen()?;
             Terminal::move_cursor_to(0, 0)?;
@@ -62,6 +67,8 @@ impl Editor {
             Self::draw_rows()?;
             Terminal::move_cursor_to(0, 0)?;
         }
+
+        execute!(stdout(), Show)?;
 
         Ok(())
     }
