@@ -1,6 +1,7 @@
 use crossterm::event::{read, Event, Event::Key, KeyCode::Char, KeyEvent, KeyModifiers};
 use crossterm::execute;
-use crossterm::terminal::{enable_raw_mode, disable_raw_mode, Clear, ClearType};
+use crossterm::cursor::MoveTo;
+use crossterm::terminal::{enable_raw_mode, disable_raw_mode, Clear, ClearType, size};
 use std::io::stdout;
 
 
@@ -65,8 +66,23 @@ impl Editor {
     fn refresh_screen(&self) -> Result<(), std::io::Error> {
         if self.should_quit {
             Self::clear_screen()?;
+            execute!(stdout(), MoveTo(0, 0))?;
             print!("Goodbye!\r\n");
+
+            return Ok(())
         }
+
+        Self::draw_rows()
+    }
+
+    fn draw_rows() -> Result<(), std::io::Error> {
+        let size = size()?;
+
+        for row in 0..(size.1 + 1) {
+            execute!(stdout(), MoveTo(0, row))?;
+            print!("~");
+        }
+
         Ok(())
     }
 }
