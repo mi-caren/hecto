@@ -7,14 +7,28 @@ use std::io::stdout;
 use std::io::Write;
 
 pub struct Terminal {
+    pub size: Size,
+}
+
+pub struct Size {
     pub rows: u16,
     pub cols: u16,
+}
+
+pub struct Position {
+    pub row: u16,
+    pub col: u16,
 }
 
 impl Terminal {
     pub fn default() -> Self {
         let terminal_size = terminal::size().unwrap();
-        Self { rows: terminal_size.1, cols: terminal_size.0 }
+        Self {
+            size: Size {
+                rows: terminal_size.1,
+                cols: terminal_size.0,
+            }
+        }
     }
 
     pub fn initialize() -> Result<(), Error> {
@@ -39,7 +53,7 @@ impl Terminal {
         Ok(())
     }
 
-    pub fn move_cursor_to(col: u16, row: u16) -> Result<(), Error> {
-        queue!(stdout(), MoveTo(col, row))
+    pub fn move_cursor_to(position: Position) -> Result<(), Error> {
+        queue!(stdout(), MoveTo(position.col, position.row))
     }
 }

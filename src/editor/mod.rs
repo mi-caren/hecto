@@ -1,6 +1,6 @@
 mod terminal;
 
-use terminal::Terminal;
+use terminal::{Terminal, Position};
 
 use std::io::Error;
 use std::io::stdout;
@@ -67,11 +67,11 @@ impl Editor {
             // let size = Terminal::size()?;
             // Terminal::move_cursor_to(size.0, size.1)?;
             Terminal::clear_screen()?;
-            Terminal::move_cursor_to(0, 0)?;
+            Terminal::move_cursor_to(Position { row: 0, col: 0 })?;
             queue!(stdout(), Print("Goodbye!\r\n"))?;
         } else {
             self.draw_rows()?;
-            Terminal::move_cursor_to(0, 0)?;
+            Terminal::move_cursor_to(Position { row: 0, col: 0 })?;
         }
 
         queue!(stdout(), Show)?;
@@ -82,10 +82,10 @@ impl Editor {
     }
 
     fn draw_rows(&self) -> Result<(), std::io::Error> {
-        Terminal::move_cursor_to(0, 0)?;
+        Terminal::move_cursor_to(Position { row:0, col: 0 })?;
 
-        for row in 0..self.terminal.rows {
-            Terminal::move_cursor_to(0, row)?;
+        for row in 0..self.terminal.size.rows {
+            Terminal::move_cursor_to(Position { row, col: 0 })?;
             queue!(stdout(), Clear(ClearType::CurrentLine))?;
             queue!(stdout(), Print("~"))?;
         }
