@@ -88,6 +88,15 @@ impl Editor {
             Terminal::move_cursor_to(Position { row, col: 0 })?;
             queue!(stdout(), Clear(ClearType::CurrentLine))?;
             queue!(stdout(), Print("~"))?;
+
+            if row == self.terminal.size.rows / 3 {
+                let message = "Hecto - v0.1.0";
+                Terminal::move_cursor_to(Position{
+                    row,
+                    col: (self.terminal.size.cols - (message.len() as u16)) / 2
+                })?;
+                queue!(stdout(), Print(message))?;
+            }
         }
 
         Ok(())
