@@ -15,12 +15,13 @@ use crossterm::style::Print;
 
 
 pub struct Editor {
+    terminal: Terminal,
     should_quit: bool,
 }
 
 impl Editor {
-    pub const fn default() -> Self {
-        Self { should_quit: false }
+    pub fn default() -> Self {
+        Self { should_quit: false, terminal: Terminal::default() }
     }
 
     pub fn run(&mut self) {
@@ -63,13 +64,13 @@ impl Editor {
         queue!(stdout(), Hide)?;
 
         if self.should_quit {
-            let size = Terminal::size()?;
-            Terminal::move_cursor_to(size.0, size.1)?;
+            // let size = Terminal::size()?;
+            // Terminal::move_cursor_to(size.0, size.1)?;
             Terminal::clear_screen()?;
             Terminal::move_cursor_to(0, 0)?;
             queue!(stdout(), Print("Goodbye!\r\n"))?;
         } else {
-            Self::draw_rows()?;
+            self.draw_rows()?;
             Terminal::move_cursor_to(0, 0)?;
         }
 
@@ -80,11 +81,10 @@ impl Editor {
         Ok(())
     }
 
-    fn draw_rows() -> Result<(), std::io::Error> {
+    fn draw_rows(&self) -> Result<(), std::io::Error> {
         Terminal::move_cursor_to(0, 0)?;
-        let rows = Terminal::size()?.1;
 
-        for row in 0..rows {
+        for row in 0..self.terminal.rows {
             Terminal::move_cursor_to(0, row)?;
             queue!(stdout(), Clear(ClearType::CurrentLine))?;
             queue!(stdout(), Print("~"))?;

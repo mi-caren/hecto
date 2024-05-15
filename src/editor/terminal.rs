@@ -6,9 +6,17 @@ use std::io::Error;
 use std::io::stdout;
 use std::io::Write;
 
-pub struct Terminal {}
+pub struct Terminal {
+    pub rows: u16,
+    pub cols: u16,
+}
 
 impl Terminal {
+    pub fn default() -> Self {
+        let terminal_size = terminal::size().unwrap();
+        Self { rows: terminal_size.1, cols: terminal_size.0 }
+    }
+
     pub fn initialize() -> Result<(), Error> {
         terminal::enable_raw_mode()?;
         queue!(stdout(), Hide)?;
@@ -29,10 +37,6 @@ impl Terminal {
         // }
         queue!(stdout(), terminal::Clear(terminal::ClearType::All))?;
         Ok(())
-    }
-
-    pub fn size() -> Result<(u16, u16), Error> {
-        terminal::size()
     }
 
     pub fn move_cursor_to(col: u16, row: u16) -> Result<(), Error> {
