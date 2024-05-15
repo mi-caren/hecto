@@ -4,10 +4,13 @@ use terminal::Terminal;
 
 use std::io::Error;
 use std::io::stdout;
+use std::io::Write;
 
 use crossterm::cursor::{Hide, Show};
 use crossterm::event::{read, Event, Event::Key, KeyCode::Char, KeyEvent, KeyModifiers};
-use crossterm::execute;
+use crossterm::queue;
+use crossterm::terminal::{Clear, ClearType};
+use crossterm::style::Print;
 
 
 
@@ -57,18 +60,22 @@ impl Editor {
     }
 
     fn refresh_screen(&self) -> Result<(), std::io::Error> {
-        execute!(stdout(), Hide)?;
+        queue!(stdout(), Hide)?;
 
         if self.should_quit {
+            let size = Terminal::size()?;
+            Terminal::move_cursor_to(size.0, size.1)?;
             Terminal::clear_screen()?;
             Terminal::move_cursor_to(0, 0)?;
-            print!("Goodbye!\r\n");
+            queue!(stdout(), Print("Goodbye!\r\n"))?;
         } else {
             Self::draw_rows()?;
             Terminal::move_cursor_to(0, 0)?;
         }
 
-        execute!(stdout(), Show)?;
+        queue!(stdout(), Show)?;
+
+        stdout().flush()?;
 
         Ok(())
     }
@@ -79,7 +86,8 @@ impl Editor {
 
         for row in 0..rows {
             Terminal::move_cursor_to(0, row)?;
-            print!("~");
+            queue!(stdout(), Clear(ClearType::CurrentLine))?;
+            queue!(stdout(), Print("~"))?;
         }
 
         Ok(())
