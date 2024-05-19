@@ -6,12 +6,10 @@ use std::io::Error;
 use std::io::stdout;
 use std::io::Write;
 
-use crossterm::cursor::{Hide, Show};
 use crossterm::event::{read, Event, Event::Key, KeyCode::Char, KeyEvent, KeyModifiers};
-use crossterm::queue;
-use crossterm::terminal::{Clear, ClearType};
-use crossterm::style::Print;
 
+const NAME: &str = env!("CARGO_PKG_NAME");
+const VERSION: &str = env!("CARGO_PKG_VERSION");
 
 
 pub struct Editor {
@@ -61,20 +59,18 @@ impl Editor {
     }
 
     fn refresh_screen(&self) -> Result<(), std::io::Error> {
-        queue!(stdout(), Hide)?;
+        Terminal::hide_cursor()?;
 
         if self.should_quit {
-            // let size = Terminal::size()?;
-            // Terminal::move_cursor_to(size.0, size.1)?;
             Terminal::clear_screen()?;
             Terminal::move_cursor_to(Position { row: 0, col: 0 })?;
-            queue!(stdout(), Print("Goodbye!\r\n"))?;
+            Terminal::print("Goodbye!\r\n")?;
         } else {
             self.draw_rows()?;
             Terminal::move_cursor_to(Position { row: 0, col: 0 })?;
         }
 
-        queue!(stdout(), Show)?;
+        Terminal::show_cursor()?;
 
         stdout().flush()?;
 
@@ -86,17 +82,20 @@ impl Editor {
 
         for row in 0..self.terminal.size.rows {
             Terminal::move_cursor_to(Position { row, col: 0 })?;
-            queue!(stdout(), Clear(ClearType::CurrentLine))?;
-            queue!(stdout(), Print("~"))?;
 
+            let mut line;
             if row == self.terminal.size.rows / 3 {
-                let message = "Hecto - v0.1.0";
-                Terminal::move_cursor_to(Position{
-                    row,
-                    col: (self.terminal.size.cols - (message.len() as u16)) / 2
-                })?;
-                queue!(stdout(), Print(message))?;
+                let message = format!("{NAME} editor -- {VERSION}");
+                let padding = (self.terminal.size.cols as usize - message.len()) / 2;
+                let spaces = " ".repeat(padding - 1);
+                line = format!("~{spaces}{message}");
+                line.truncate(self.terminal.size.cols as usize);
+            } else {
+                line = "~".to_string();
             }
+
+            Terminal::clear_line()?;
+            Terminal::print(line)?;
         }
 
         Ok(())
