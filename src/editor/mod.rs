@@ -20,8 +20,8 @@ pub struct Editor {
 }
 
 pub struct Location {
-    pub row: u16,
-    pub col: u16,
+    pub row: usize,
+    pub col: usize,
 }
 
 impl Editor {
@@ -67,32 +67,48 @@ impl Editor {
                 KeyCode::Char('q') if *modifiers == KeyModifiers::CONTROL => {
                     self.should_quit = true;
                 },
-                KeyCode::Right => {
-                    self.location.col = min(self.location.col.saturating_add(1), self.terminal.size.cols - 1);
-                },
-                KeyCode::Left => {
-                    self.location.col = self.location.col.saturating_sub(1);
-                },
-                KeyCode::Up => {
-                    self.location.row = self.location.row.saturating_sub(1);
-                },
-                KeyCode::Down => {
-                    self.location.row = min(self.location.row.saturating_add(1), self.terminal.size.rows - 1);
-                },
-                KeyCode::PageUp => {
-                    self.location.row = 0;
-                },
-                KeyCode::PageDown => {
-                    self.location.row = self.terminal.size.rows - 1;
-                },
-                KeyCode::Home => {
-                    self.location.col = 0;
-                },
-                KeyCode::End => {
-                    self.location.col = self.terminal.size.cols - 1;
+                KeyCode::Right
+                | KeyCode::Left
+                | KeyCode::Up
+                | KeyCode::Down
+                | KeyCode::PageUp
+                | KeyCode::PageDown
+                | KeyCode::Home
+                |KeyCode::End => {
+                    self.move_point(*code);
                 },
                 _ => (),
             }
+        }
+    }
+
+    fn move_point(&mut self, key: KeyCode) {
+        match key {
+            KeyCode::Right => {
+                self.location.col = min(self.location.col.saturating_add(1), self.terminal.size.cols as usize - 1);
+            },
+            KeyCode::Left => {
+                self.location.col = self.location.col.saturating_sub(1);
+            },
+            KeyCode::Up => {
+                self.location.row = self.location.row.saturating_sub(1);
+            },
+            KeyCode::Down => {
+                self.location.row = min(self.location.row.saturating_add(1), self.terminal.size.rows as usize - 1);
+            },
+            KeyCode::PageUp => {
+                self.location.row = 0;
+            },
+            KeyCode::PageDown => {
+                self.location.row = self.terminal.size.rows as usize - 1;
+            },
+            KeyCode::Home => {
+                self.location.col = 0;
+            },
+            KeyCode::End => {
+                self.location.col = self.terminal.size.cols as usize - 1;
+            },
+            _ => (),
         }
     }
 
@@ -106,8 +122,8 @@ impl Editor {
         } else {
             self.draw_rows()?;
             self.terminal.move_cursor_to(Position {
-                row: self.location.row,
-                col: self.location.col,
+                row: self.location.row as u16,
+                col: self.location.col as u16,
             })?;
         }
 
