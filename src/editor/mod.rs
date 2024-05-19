@@ -68,7 +68,7 @@ impl Editor {
                     self.should_quit = true;
                 },
                 KeyCode::Right => {
-                    self.location.col = self.location.col.saturating_add(1);
+                    self.location.col = min(self.location.col.saturating_add(1), self.terminal.size.cols - 1);
                 },
                 KeyCode::Left => {
                     self.location.col = self.location.col.saturating_sub(1);
@@ -77,7 +77,7 @@ impl Editor {
                     self.location.row = self.location.row.saturating_sub(1);
                 },
                 KeyCode::Down => {
-                    self.location.row = self.location.row.saturating_add(1);
+                    self.location.row = min(self.location.row.saturating_add(1), self.terminal.size.rows - 1);
                 },
                 _ => (),
             }
@@ -94,8 +94,8 @@ impl Editor {
         } else {
             self.draw_rows()?;
             self.terminal.move_cursor_to(Position {
-                row: min(self.location.row, self.terminal.size.rows),
-                col: min(self.location.col, self.terminal.size.cols),
+                row: self.location.row,
+                col: self.location.col,
             })?;
         }
 
