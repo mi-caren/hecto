@@ -12,6 +12,7 @@ use std::fmt::Display;
 
 pub struct Terminal {
     pub size: Size,
+    pub cursor: Cursor,
 }
 
 pub struct Size {
@@ -19,6 +20,11 @@ pub struct Size {
     pub cols: u16,
 }
 
+pub struct Cursor {
+    pub position: Position,
+}
+
+#[derive(Copy, Clone)]
 pub struct Position {
     pub row: u16,
     pub col: u16,
@@ -31,6 +37,12 @@ impl Terminal {
             size: Size {
                 rows: terminal_size.1,
                 cols: terminal_size.0,
+            },
+            cursor: Cursor {
+                position: Position {
+                    row: 0,
+                    col: 0,
+                }
             }
         }
     }
@@ -65,15 +77,12 @@ impl Terminal {
     }
 
     pub fn clear_screen() -> Result<(), Error> {
-        // for _row in 0..Self::size()?.1 {
-        //     print!("\r\n");
-        //     // execute!(stdout(), terminal::Clear(terminal::ClearType::All))
-        // }
         queue!(stdout(), terminal::Clear(terminal::ClearType::All))?;
         Ok(())
     }
 
-    pub fn move_cursor_to(position: Position) -> Result<(), Error> {
+    pub fn move_cursor_to(&mut self, position: Position) -> Result<(), Error> {
+        self.cursor.position = position;
         queue!(stdout(), MoveTo(position.col, position.row))
     }
 

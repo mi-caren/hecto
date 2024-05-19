@@ -58,16 +58,16 @@ impl Editor {
         }
     }
 
-    fn refresh_screen(&self) -> Result<(), std::io::Error> {
+    fn refresh_screen(&mut self) -> Result<(), std::io::Error> {
         Terminal::hide_cursor()?;
 
         if self.should_quit {
             Terminal::clear_screen()?;
-            Terminal::move_cursor_to(Position { row: 0, col: 0 })?;
+            self.terminal.move_cursor_to(Position { row: 0, col: 0 })?;
             Terminal::print("Goodbye!\r\n")?;
         } else {
             self.draw_rows()?;
-            Terminal::move_cursor_to(Position { row: 0, col: 0 })?;
+            self.terminal.move_cursor_to(Position { row: 0, col: 0 })?;
         }
 
         Terminal::show_cursor()?;
@@ -77,11 +77,11 @@ impl Editor {
         Ok(())
     }
 
-    fn draw_rows(&self) -> Result<(), std::io::Error> {
-        Terminal::move_cursor_to(Position { row:0, col: 0 })?;
+    fn draw_rows(&mut self) -> Result<(), std::io::Error> {
+        self.terminal.move_cursor_to(Position { row:0, col: 0 })?;
 
         for row in 0..self.terminal.size.rows {
-            Terminal::move_cursor_to(Position { row, col: 0 })?;
+            self.terminal.move_cursor_to(Position { row, col: 0 })?;
 
             let mut line;
             if row == self.terminal.size.rows / 3 {
