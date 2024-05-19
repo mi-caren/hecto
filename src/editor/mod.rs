@@ -79,6 +79,18 @@ impl Editor {
                 KeyCode::Down => {
                     self.location.row = min(self.location.row.saturating_add(1), self.terminal.size.rows - 1);
                 },
+                KeyCode::PageUp => {
+                    self.location.row = 0;
+                },
+                KeyCode::PageDown => {
+                    self.location.row = self.terminal.size.rows - 1;
+                },
+                KeyCode::Home => {
+                    self.location.col = 0;
+                },
+                KeyCode::End => {
+                    self.location.col = self.terminal.size.cols - 1;
+                },
                 _ => (),
             }
         }
