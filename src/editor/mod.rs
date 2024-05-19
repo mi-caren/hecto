@@ -5,8 +5,9 @@ use terminal::{Terminal, Position};
 use std::io::Error;
 use std::io::stdout;
 use std::io::Write;
+use std::cmp::min;
 
-use crossterm::event::{read, Event, Event::Key, KeyCode::Char, KeyEvent, KeyModifiers};
+use crossterm::event::{read, Event, Event::Key, KeyCode, KeyEvent, KeyModifiers};
 
 const NAME: &str = env!("CARGO_PKG_NAME");
 const VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -14,12 +15,25 @@ const VERSION: &str = env!("CARGO_PKG_VERSION");
 
 pub struct Editor {
     terminal: Terminal,
+    location: Location,
     should_quit: bool,
+}
+
+pub struct Location {
+    pub row: u16,
+    pub col: u16,
 }
 
 impl Editor {
     pub fn default() -> Self {
-        Self { should_quit: false, terminal: Terminal::default() }
+        Self {
+            should_quit: false,
+            terminal: Terminal::default(),
+            location: Location {
+                row: 0,
+                col: 0,
+            }
+        }
     }
 
     pub fn run(&mut self) {
@@ -50,8 +64,20 @@ impl Editor {
         }) = event
         {
             match code {
-                Char('q') if *modifiers == KeyModifiers::CONTROL => {
+                KeyCode::Char('q') if *modifiers == KeyModifiers::CONTROL => {
                     self.should_quit = true;
+                },
+                KeyCode::Right => {
+                    self.location.col = self.location.col.saturating_add(1);
+                },
+                KeyCode::Left => {
+                    self.location.col = self.location.col.saturating_sub(1);
+                },
+                KeyCode::Up => {
+                    self.location.row = self.location.row.saturating_sub(1);
+                },
+                KeyCode::Down => {
+                    self.location.row = self.location.row.saturating_add(1);
                 },
                 _ => (),
             }
@@ -67,7 +93,10 @@ impl Editor {
             Terminal::print("Goodbye!\r\n")?;
         } else {
             self.draw_rows()?;
-            self.terminal.move_cursor_to(Position { row: 0, col: 0 })?;
+            self.terminal.move_cursor_to(Position {
+                row: min(self.location.row, self.terminal.size.rows),
+                col: min(self.location.col, self.terminal.size.cols),
+            })?;
         }
 
         Terminal::show_cursor()?;
