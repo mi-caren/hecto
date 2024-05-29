@@ -146,8 +146,6 @@ impl View {
         terminal.move_cursor_to(Position { row:0, col: 0 })?;
 
         for row in 0..terminal.size.rows {
-            terminal.move_cursor_to(Position { row, col: 0 })?;
-
             let line =
                 if row == 0 {
                     self.row.clone()
@@ -164,6 +162,9 @@ impl View {
 
             Terminal::clear_line()?;
             Terminal::print(&line)?;
+            if row.saturating_add(1) < terminal.size.rows {
+                Terminal::print("\r\n")?;
+            }
         }
 
         Ok(())
