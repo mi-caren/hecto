@@ -16,6 +16,7 @@ const VERSION: &str = env!("CARGO_PKG_VERSION");
 pub struct Editor {
     terminal: Terminal,
     location: Location,
+    view: View,
     should_quit: bool,
 }
 
@@ -24,11 +25,16 @@ pub struct Location {
     pub col: usize,
 }
 
+pub struct View {
+    row: String,
+}
+
 impl Editor {
     pub fn default() -> Self {
         Self {
             should_quit: false,
             terminal: Terminal::default(),
+            view: View { row: String::from("Hello, World!") },
             location: Location {
                 row: 0,
                 col: 0,
@@ -120,7 +126,7 @@ impl Editor {
             self.terminal.move_cursor_to(Position { row: 0, col: 0 })?;
             Terminal::print("Goodbye!\r\n")?;
         } else {
-            self.draw_rows()?;
+            self.view.render(&mut self.terminal)?;
             self.terminal.move_cursor_to(Position {
                 row: self.location.row as u16,
                 col: self.location.col as u16,
@@ -133,26 +139,31 @@ impl Editor {
 
         Ok(())
     }
+}
 
-    fn draw_rows(&mut self) -> Result<(), std::io::Error> {
-        self.terminal.move_cursor_to(Position { row:0, col: 0 })?;
+impl View {
+    pub fn render(&self, terminal: &mut Terminal) -> Result<(), Error> {
+        terminal.move_cursor_to(Position { row:0, col: 0 })?;
 
-        for row in 0..self.terminal.size.rows {
-            self.terminal.move_cursor_to(Position { row, col: 0 })?;
+        for row in 0..terminal.size.rows {
+            terminal.move_cursor_to(Position { row, col: 0 })?;
 
-            let mut line;
-            if row == self.terminal.size.rows / 3 {
-                let message = format!("{NAME} editor -- {VERSION}");
-                let padding = (self.terminal.size.cols as usize - message.len()) / 2;
-                let spaces = " ".repeat(padding - 1);
-                line = format!("~{spaces}{message}");
-                line.truncate(self.terminal.size.cols as usize);
-            } else {
-                line = "~".to_string();
-            }
+            let line =
+                if row == 0 {
+                    self.row.clone()
+                } else if row == terminal.size.rows / 3 {
+                    let mut message = format!("{NAME} editor -- {VERSION}");
+                    let padding = (terminal.size.cols as usize - message.len()) / 2;
+                    let spaces = " ".repeat(padding - 1);
+                    message = format!("~{spaces}{message}");
+                    message.truncate(terminal.size.cols as usize);
+                    message
+                } else {
+                    "~".to_string()
+                };
 
             Terminal::clear_line()?;
-            Terminal::print(line)?;
+            Terminal::print(&line)?;
         }
 
         Ok(())

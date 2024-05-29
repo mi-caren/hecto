@@ -8,7 +8,6 @@ use crossterm::terminal::{Clear, ClearType};
 use std::io::Error;
 use std::io::stdout;
 use std::io::Write;
-use std::fmt::Display;
 
 pub struct Terminal {
     pub size: Size,
@@ -64,7 +63,7 @@ impl Terminal {
         Self::queue_command(Hide)
     }
 
-    pub fn print<T: Display>(str: T) -> Result<(), Error> {
+    pub fn print(str: &str) -> Result<(), Error> {
         Self::queue_command(Print(str))
     }
 
