@@ -26,15 +26,23 @@ pub struct Location {
 }
 
 pub struct View {
-    row: String,
+    buffer: Buffer,
+}
+
+struct Buffer {
+    lines: Vec<String>,
 }
 
 impl Editor {
     pub fn default() -> Self {
+        let mut initial_buffer = Buffer { lines: Vec::new() };
+        initial_buffer.lines.push(String::from("Hello, World!"));
         Self {
             should_quit: false,
             terminal: Terminal::default(),
-            view: View { row: String::from("Hello, World!") },
+            view: View {
+                buffer: initial_buffer,
+            },
             location: Location {
                 row: 0,
                 col: 0,
@@ -148,7 +156,7 @@ impl View {
         for row in 0..terminal.size.rows {
             let line =
                 if row == 0 {
-                    self.row.clone()
+                    self.buffer.lines[0].clone()
                 } else if row == terminal.size.rows / 3 {
                     let mut message = format!("{NAME} editor -- {VERSION}");
                     let padding = (terminal.size.cols as usize - message.len()) / 2;
