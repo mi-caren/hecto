@@ -32,21 +32,21 @@ pub struct View {
     buffer: Buffer,
 }
 
+#[derive(Default)]
 struct Buffer {
     lines: Vec<String>,
 }
 
-impl Default for Buffer {
-    fn default() -> Self {
-        Self {
-            lines: vec!["Hello, World!".to_string()]
-        }
-    }
-}
 
 impl Editor {
     pub fn run(&mut self) {
         Terminal::initialize().unwrap();
+
+        let args: Vec<String> = std::env::args().collect();
+        if let Some(filename) = args.get(1) {
+            self.view.load(filename).unwrap();
+        }
+
         let result = self.repl();
         Terminal::terminate().unwrap();
         result.unwrap();
@@ -152,7 +152,7 @@ impl View {
             let line =
                 if let Some(line) = self.buffer.lines.get(row as usize) {
                     line.clone()
-                } else if row == terminal.size.rows / 3 {
+                } else if self.buffer.is_empty() && row == terminal.size.rows / 3 {
                     let mut message = format!("{NAME} editor -- {VERSION}");
                     let padding = (terminal.size.cols as usize - message.len()) / 2;
                     let spaces = " ".repeat(padding - 1);
@@ -171,5 +171,21 @@ impl View {
         }
 
         Ok(())
+    }
+
+    pub fn load(&mut self, filename: &String) -> Result<(), Error> {
+        let file_contents = std::fs::read_to_string(filename)?;
+
+        for line in file_contents.lines() {
+            self.buffer.lines.push(line.to_string());
+        }
+
+        Ok(())
+    }
+}
+
+impl Buffer {
+    fn is_empty(&self) -> bool {
+        self.lines.len() == 0
     }
 }
