@@ -13,6 +13,7 @@ const NAME: &str = env!("CARGO_PKG_NAME");
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 
 
+#[derive(Default)]
 pub struct Editor {
     terminal: Terminal,
     location: Location,
@@ -20,11 +21,13 @@ pub struct Editor {
     should_quit: bool,
 }
 
+#[derive(Default)]
 pub struct Location {
     pub row: usize,
     pub col: usize,
 }
 
+#[derive(Default)]
 pub struct View {
     buffer: Buffer,
 }
@@ -33,23 +36,15 @@ struct Buffer {
     lines: Vec<String>,
 }
 
-impl Editor {
-    pub fn default() -> Self {
-        let mut initial_buffer = Buffer { lines: Vec::new() };
-        initial_buffer.lines.push(String::from("Hello, World!"));
+impl Default for Buffer {
+    fn default() -> Self {
         Self {
-            should_quit: false,
-            terminal: Terminal::default(),
-            view: View {
-                buffer: initial_buffer,
-            },
-            location: Location {
-                row: 0,
-                col: 0,
-            }
+            lines: vec!["Hello, World!".to_string()]
         }
     }
+}
 
+impl Editor {
     pub fn run(&mut self) {
         Terminal::initialize().unwrap();
         let result = self.repl();

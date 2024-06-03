@@ -9,6 +9,7 @@ use std::io::Error;
 use std::io::stdout;
 use std::io::Write;
 
+#[derive(Default)]
 pub struct Terminal {
     pub size: Size,
     pub cursor: Cursor,
@@ -19,33 +20,28 @@ pub struct Size {
     pub cols: u16,
 }
 
+#[derive(Default)]
 pub struct Cursor {
     pub position: Position,
 }
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Default)]
 pub struct Position {
     pub row: u16,
     pub col: u16,
 }
 
-impl Terminal {
-    pub fn default() -> Self {
+impl Default for Size {
+    fn default() -> Self {
         let terminal_size = terminal::size().unwrap();
         Self {
-            size: Size {
-                rows: terminal_size.1,
-                cols: terminal_size.0,
-            },
-            cursor: Cursor {
-                position: Position {
-                    row: 0,
-                    col: 0,
-                }
-            }
+            rows: terminal_size.1,
+            cols: terminal_size.0,
         }
     }
+}
 
+impl Terminal {
     pub fn initialize() -> Result<(), Error> {
         terminal::enable_raw_mode()?;
         Self::hide_cursor()?;
