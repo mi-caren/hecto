@@ -155,8 +155,8 @@ impl View {
 
         for row in 0..terminal.size.rows {
             let line =
-                if row == 0 {
-                    self.buffer.lines[0].clone()
+                if let Some(line) = self.buffer.lines.get(row as usize) {
+                    line.clone()
                 } else if row == terminal.size.rows / 3 {
                     let mut message = format!("{NAME} editor -- {VERSION}");
                     let padding = (terminal.size.cols as usize - message.len()) / 2;
