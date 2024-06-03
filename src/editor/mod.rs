@@ -7,7 +7,7 @@ use std::io::stdout;
 use std::io::Write;
 use std::cmp::min;
 
-use crossterm::event::{read, Event, Event::Key, KeyCode, KeyEvent, KeyModifiers};
+use crossterm::event::{read, Event, Event::Key, Event::Resize, KeyCode, KeyEvent, KeyModifiers};
 
 const NAME: &str = env!("CARGO_PKG_NAME");
 const VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -30,6 +30,7 @@ pub struct Location {
 #[derive(Default)]
 pub struct View {
     buffer: Buffer,
+    needs_redraw: bool,
 }
 
 #[derive(Default)]
@@ -47,6 +48,7 @@ impl Editor {
             self.view.load(filename).unwrap();
         }
 
+        self.view.needs_redraw = true;
         let result = self.repl();
         Terminal::terminate().unwrap();
         result.unwrap();
@@ -83,11 +85,15 @@ impl Editor {
                 | KeyCode::PageUp
                 | KeyCode::PageDown
                 | KeyCode::Home
-                |KeyCode::End => {
+                | KeyCode::End => {
                     self.move_point(*code);
                 },
                 _ => (),
             }
+        } else if let Resize(cols, rows) = event {
+            self.terminal.size.cols = *cols;
+            self.terminal.size.rows = *rows;
+            self.view.needs_redraw = true;
         }
     }
 
@@ -129,7 +135,9 @@ impl Editor {
             self.terminal.move_cursor_to(Position { row: 0, col: 0 })?;
             Terminal::print("Goodbye!\r\n")?;
         } else {
-            self.view.render(&mut self.terminal)?;
+            if self.view.needs_redraw {
+                self.view.render(&mut self.terminal)?;
+            }
             self.terminal.move_cursor_to(Position {
                 row: self.location.row as u16,
                 col: self.location.col as u16,
@@ -145,24 +153,23 @@ impl Editor {
 }
 
 impl View {
-    pub fn render(&self, terminal: &mut Terminal) -> Result<(), Error> {
+    pub fn render(&mut self, terminal: &mut Terminal) -> Result<(), Error> {
         terminal.move_cursor_to(Position { row:0, col: 0 })?;
 
         for row in 0..terminal.size.rows {
-            let line =
+            let mut line =
                 if let Some(line) = self.buffer.lines.get(row as usize) {
                     line.clone()
                 } else if self.buffer.is_empty() && row == terminal.size.rows / 3 {
-                    let mut message = format!("{NAME} editor -- {VERSION}");
+                    let message = format!("{NAME} editor -- {VERSION}");
                     let padding = (terminal.size.cols as usize - message.len()) / 2;
                     let spaces = " ".repeat(padding - 1);
-                    message = format!("~{spaces}{message}");
-                    message.truncate(terminal.size.cols as usize);
-                    message
+                    format!("~{spaces}{message}")
                 } else {
                     "~".to_string()
                 };
 
+            line.truncate(terminal.size.cols as usize);
             Terminal::clear_line()?;
             Terminal::print(&line)?;
             if row.saturating_add(1) < terminal.size.rows {
@@ -170,6 +177,7 @@ impl View {
             }
         }
 
+        self.needs_redraw = false;
         Ok(())
     }
 
@@ -180,12 +188,13 @@ impl View {
             self.buffer.lines.push(line.to_string());
         }
 
+        self.needs_redraw = true;
         Ok(())
     }
 }
 
 impl Buffer {
     fn is_empty(&self) -> bool {
-        self.lines.len() == 0
+        self.lines.is_empty()
     }
 }
