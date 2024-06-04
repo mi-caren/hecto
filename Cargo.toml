@@ -2,6 +2,7 @@
 name = "hecto"
 version = "0.1.0"
 edition = "2021"
+# panic = 'abort'
 
 [dependencies]
 crossterm = "0.27.0"

@@ -50,7 +50,6 @@ impl Editor {
 
         self.view.needs_redraw = true;
         let result = self.repl();
-        Terminal::terminate().unwrap();
         result.unwrap();
     }
 

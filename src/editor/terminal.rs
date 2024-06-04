@@ -41,6 +41,12 @@ impl Default for Size {
     }
 }
 
+impl Drop for Terminal {
+    fn drop(&mut self) {
+        Terminal::terminate().unwrap();
+    }
+}
+
 impl Terminal {
     pub fn initialize() -> Result<(), Error> {
         terminal::enable_raw_mode()?;
