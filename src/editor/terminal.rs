@@ -43,7 +43,7 @@ impl Default for Size {
 
 impl Drop for Terminal {
     fn drop(&mut self) {
-        Terminal::terminate().unwrap();
+        let _ = Terminal::terminate();
     }
 }
 

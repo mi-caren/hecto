@@ -41,31 +41,43 @@ struct Buffer {
 
 impl Editor {
     pub fn run(&mut self) {
-        Terminal::initialize().unwrap();
+        if let Err(error) = Terminal::initialize() {
+            println!("Unable no initialize terminal {error}");
+            return;
+        }
 
         let args: Vec<String> = std::env::args().collect();
         if let Some(filename) = args.get(1) {
-            self.view.load(filename).unwrap();
+            if let Err(error) = self.view.load(filename) {
+                println!("Unable to load file {filename}: {error}\r");
+                // maybe I can just open an empty buffer
+                return;
+            }
         }
 
         self.view.needs_redraw = true;
-        let result = self.repl();
-        result.unwrap();
+        self.repl();
     }
 
-    fn repl(&mut self) -> Result<(), Error> {
+    fn repl(&mut self) {
         loop {
-            self.refresh_screen()?;
+            if let Err(error) = self.refresh_screen() {
+                println!("An error occurred while refreshing the screen: {error}");
+                break;
+            }
 
             if self.should_quit {
                 break;
             }
 
-            let event = read()?;
-            self.evaluate_event(&event);
+            match read() {
+                Ok(event) => self.evaluate_event(&event),
+                Err(error) => {
+                    println!("Unable to read terminal events: {error}");
+                    break;
+                }
+            }
         }
-
-        Ok(())
     }
 
     fn evaluate_event(&mut self, event: &Event) {
@@ -127,12 +139,14 @@ impl Editor {
     }
 
     fn refresh_screen(&mut self) -> Result<(), std::io::Error> {
-        Terminal::hide_cursor()?;
+        if let Err(error) = Terminal::hide_cursor() {
+            println!("Unable to hide cursor while refreshing screen: {error}");
+        }
 
         if self.should_quit {
-            Terminal::clear_screen()?;
-            self.terminal.move_cursor_to(Position { row: 0, col: 0 })?;
-            Terminal::print("Goodbye!\r\n")?;
+            if let Err(error) = self.print_goodbye() {
+                println!("Error while quitting: {error}");
+            };
         } else {
             if self.view.needs_redraw {
                 self.view.render(&mut self.terminal)?;
@@ -148,6 +162,12 @@ impl Editor {
         stdout().flush()?;
 
         Ok(())
+    }
+
+    fn print_goodbye(&mut self) -> Result<(), Error> {
+        Terminal::clear_screen()?;
+        self.terminal.move_cursor_to(Position { row: 0, col: 0 })?;
+        Terminal::print("Goodbye!\r\n")
     }
 }
 
