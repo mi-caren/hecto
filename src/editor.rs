@@ -4,12 +4,13 @@ mod view;
 
 use terminal::{Terminal, CursorPosition};
 use view::View;
+use utils::EditorCommand;
 
 use std::io::Error;
 use std::io::stdout;
 use std::io::Write;
 
-use crossterm::event::{read, Event, Event::Key, Event::Resize, KeyCode, KeyEvent, KeyModifiers};
+use crossterm::event::{read, Event};
 
 const NAME: &str = env!("CARGO_PKG_NAME");
 const VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -75,7 +76,7 @@ impl Editor {
             }
 
             match read() {
-                Ok(event) => self.evaluate_event(&event),
+                Ok(event) => self.evaluate_event(event),
                 Err(error) => {
                     Terminal::log_error("Unable to read terminal events", error);
                     break;
@@ -84,33 +85,21 @@ impl Editor {
         }
     }
 
-    fn evaluate_event(&mut self, event: &Event) {
-        if let Key(KeyEvent {
-            code, modifiers, ..
-        }) = event
-        {
-            match code {
-                KeyCode::Char('q') if *modifiers == KeyModifiers::CONTROL => {
-                    self.should_quit = true;
-                },
-                KeyCode::Right
-                | KeyCode::Left
-                | KeyCode::Up
-                | KeyCode::Down
-                | KeyCode::PageUp
-                | KeyCode::PageDown
-                | KeyCode::Home
-                | KeyCode::End => {
-                    self.view.move_point(*code);
-                },
-                _ => (),
-            }
-        } else if let Resize(cols, rows) = event {
-            self.terminal.size.cols = *cols as usize;
-            self.terminal.size.rows = *rows as usize;
-            self.view.size = self.terminal.size;
-            self.view.handle_scroll();
-            self.view.needs_redraw = true;
+    fn evaluate_event(&mut self, event: Event) {
+        match EditorCommand::from(event) {
+            EditorCommand::Quit => {
+                self.should_quit = true;
+            },
+            EditorCommand::Move(direction) => {
+                self.view.move_point(direction);
+            },
+            EditorCommand::Resize(size) => {
+                self.terminal.size = size;
+                self.view.size = size;
+                self.view.handle_scroll();
+                self.view.needs_redraw = true;
+            },
+            EditorCommand::None => (),
         }
     }
 

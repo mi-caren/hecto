@@ -1,8 +1,7 @@
-use crate::editor::utils::Size;
+use crate::editor::utils::{Size, Direction};
 use crate::editor::terminal::{Terminal, CursorPosition};
 use crate::editor::{NAME, VERSION};
 
-use crossterm::event::KeyCode;
 use std::io::Error;
 
 
@@ -93,33 +92,32 @@ impl View {
         Ok(())
     }
 
-    pub fn move_point(&mut self, key: KeyCode) {
-        match key {
-            KeyCode::Right => {
+    pub fn move_point(&mut self, direction: Direction) {
+        match direction {
+            Direction::Right => {
                 self.location.col = self.location.col.saturating_add(1);
             },
-            KeyCode::Left => {
+            Direction::Left => {
                 self.location.col = self.location.col.saturating_sub(1);
             },
-            KeyCode::Up => {
+            Direction::Up => {
                 self.location.row = self.location.row.saturating_sub(1);
             },
-            KeyCode::Down => {
+            Direction::Down => {
                 self.location.row = self.location.row.saturating_add(1);
             },
-            KeyCode::PageUp => {
+            Direction::PageUp => {
                 self.location.row = 0;
             },
-            KeyCode::PageDown => {
-                self.location.row = self.scroll_offset.rows + self.size.rows as usize;
+            Direction::PageDown => {
+                self.location.row = self.scroll_offset.rows + self.size.rows - 1 as usize;
             },
-            KeyCode::Home => {
+            Direction::Home => {
                 self.location.col = 0;
             },
-            KeyCode::End => {
-                self.location.col = self.scroll_offset.cols + self.size.cols as usize;
+            Direction::End => {
+                self.location.col = self.scroll_offset.cols + self.size.cols - 1 as usize;
             },
-            _ => (),
         }
 
         self.handle_scroll();
