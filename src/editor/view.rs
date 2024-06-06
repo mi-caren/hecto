@@ -98,10 +98,18 @@ impl View {
             Direction::Right => {
                 if self.location.col < self.buffer.lines[self.location.row].len() {
                     self.location.col = self.location.col.saturating_add(1);
+                } else if self.location.col == self.buffer.lines[self.location.row].len() && self.location.row < self.buffer.lines.len() - 1 {
+                    self.location.row = self.location.row.saturating_add(1);
+                    self.location.col = 0;
                 }
             },
             Direction::Left => {
-                self.location.col = self.location.col.saturating_sub(1);
+                if self.location.col == 0 {
+                    self.location.row = self.location.row.saturating_sub(1);
+                    self.location.col = self.buffer.lines[self.location.row].len();
+                } else {
+                    self.location.col = self.location.col.saturating_sub(1);
+                }
             },
             Direction::Up => {
                 self.location.row = self.location.row.saturating_sub(1);
