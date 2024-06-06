@@ -108,6 +108,8 @@ impl Editor {
         } else if let Resize(cols, rows) = event {
             self.terminal.size.cols = *cols as usize;
             self.terminal.size.rows = *rows as usize;
+            self.view.size = self.terminal.size;
+            self.view.handle_scroll();
             self.view.needs_redraw = true;
         }
     }

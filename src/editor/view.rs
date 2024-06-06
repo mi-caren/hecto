@@ -9,7 +9,7 @@ use std::io::Error;
 
 pub struct View {
     pub location: Location,
-    size: Size,
+    pub size: Size,
     buffer: Buffer,
     pub needs_redraw: bool,
     pub scroll_offset: ScrollOffset,
@@ -125,7 +125,7 @@ impl View {
         self.handle_scroll();
     }
 
-    fn handle_scroll(&mut self) {
+    pub fn handle_scroll(&mut self) {
         if self.location.col >= self.scroll_offset.cols + self.size.cols || self.location.col < self.scroll_offset.cols {
             self.scroll_offset.cols = self.location.col.saturating_sub(self.size.cols);
             self.needs_redraw = true;
@@ -134,14 +134,6 @@ impl View {
             self.scroll_offset.rows = self.location.row.saturating_sub(self.size.rows);
             self.needs_redraw = true;
         }
-        // if self.location.row < self.scroll_offset.rows {
-        //     self.scroll_offset.rows = self.scroll_offset.rows.saturating_sub(1);
-        //     self.needs_redraw = true;
-        // }
-        // if self.location.col < self.scroll_offset.cols {
-        //     self.scroll_offset.cols = self.scroll_offset.cols.saturating_sub(1);
-        //     self.needs_redraw = true;
-        // }
     }
 }
 
