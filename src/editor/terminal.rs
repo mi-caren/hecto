@@ -1,3 +1,5 @@
+use crate::editor::utils::Size;
+
 use crossterm::{queue, Command};
 use crossterm::cursor::{Hide, Show, MoveTo};
 use crossterm::terminal::{self, EnterAlternateScreen, LeaveAlternateScreen};
@@ -9,21 +11,15 @@ use std::io::Error;
 use std::io::stdout;
 use std::io::Write;
 
-#[derive(Default)]
 pub struct Terminal {
     pub size: Size,
-    pub cursor: Cursor,
+    // pub cursor: Cursor,
 }
 
-pub struct Size {
-    pub rows: u16,
-    pub cols: u16,
-}
-
-#[derive(Default)]
-pub struct Cursor {
-    pub position: Position,
-}
+// #[derive(Default)]
+// pub struct Cursor {
+//     pub position: Position,
+// }
 
 #[derive(Copy, Clone, Default)]
 pub struct Position {
@@ -31,15 +27,6 @@ pub struct Position {
     pub col: u16,
 }
 
-impl Default for Size {
-    fn default() -> Self {
-        let terminal_size = terminal::size().unwrap();
-        Self {
-            rows: terminal_size.1,
-            cols: terminal_size.0,
-        }
-    }
-}
 
 impl Drop for Terminal {
     fn drop(&mut self) {
@@ -48,6 +35,17 @@ impl Drop for Terminal {
 }
 
 impl Terminal {
+    pub fn new() -> Self {
+        let terminal_size = terminal::size().unwrap();
+        Self {
+            size: Size {
+                rows: terminal_size.1,
+                cols: terminal_size.0,
+            },
+            // cursor: Cursor::default(),
+        }
+    }
+
     pub fn initialize() -> Result<(), Error> {
         terminal::enable_raw_mode()?;
         Self::queue_command(EnterAlternateScreen)?;
@@ -96,8 +94,8 @@ impl Terminal {
         Ok(())
     }
 
-    pub fn move_cursor_to(&mut self, position: Position) -> Result<(), Error> {
-        self.cursor.position = position;
+    pub fn move_cursor_to(position: Position) -> Result<(), Error> {
+        // self.cursor.position = position;
         queue!(stdout(), MoveTo(position.col, position.row))
     }
 
