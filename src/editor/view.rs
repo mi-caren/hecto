@@ -4,7 +4,6 @@ use crate::editor::{NAME, VERSION};
 
 use crossterm::event::KeyCode;
 use std::io::Error;
-use std::cmp::min;
 
 
 
@@ -81,7 +80,7 @@ impl View {
     pub fn move_point(&mut self, key: KeyCode) {
         match key {
             KeyCode::Right => {
-                self.location.col = min(self.location.col.saturating_add(1), self.size.cols as usize - 1);
+                self.location.col = self.location.col.saturating_add(1);
             },
             KeyCode::Left => {
                 self.location.col = self.location.col.saturating_sub(1);
@@ -90,7 +89,7 @@ impl View {
                 self.location.row = self.location.row.saturating_sub(1);
             },
             KeyCode::Down => {
-                self.location.row = min(self.location.row.saturating_add(1), self.size.rows as usize - 1);
+                self.location.row = self.location.row.saturating_add(1);
             },
             KeyCode::PageUp => {
                 self.location.row = 0;
