@@ -187,6 +187,8 @@ impl View {
                 } else {
                     "~".to_string()
                 };
+            debug_assert!(!line.contains("\n"));
+            debug_assert!(!line.contains("\r"));
 
             line.truncate(terminal.size.cols as usize);
             Terminal::clear_line()?;
