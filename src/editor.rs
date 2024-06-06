@@ -106,8 +106,8 @@ impl Editor {
                 _ => (),
             }
         } else if let Resize(cols, rows) = event {
-            self.terminal.size.cols = *cols;
-            self.terminal.size.rows = *rows;
+            self.terminal.size.cols = *cols as usize;
+            self.terminal.size.rows = *rows as usize;
             self.view.needs_redraw = true;
         }
     }
@@ -126,8 +126,8 @@ impl Editor {
                 self.view.render()?;
             }
             Terminal::move_cursor_to(CursorPosition {
-                row: self.view.location.row as u16,
-                col: self.view.location.col as u16,
+                row: self.view.location.row.saturating_sub(self.view.scroll_offset.rows) as u16,
+                col: self.view.location.col.saturating_sub(self.view.scroll_offset.cols) as u16,
             })?;
         }
 

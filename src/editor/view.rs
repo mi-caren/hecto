@@ -12,6 +12,7 @@ pub struct View {
     size: Size,
     buffer: Buffer,
     pub needs_redraw: bool,
+    pub scroll_offset: ScrollOffset,
 }
 
 #[derive(Default)]
@@ -25,6 +26,12 @@ pub struct Location {
     pub col: usize,
 }
 
+#[derive(Default)]
+pub struct ScrollOffset {
+    pub rows: usize,
+    pub cols: usize,
+}
+
 
 impl View {
     pub fn new(size: Size) -> Self {
@@ -33,16 +40,25 @@ impl View {
             size,
             buffer: Buffer::default(),
             needs_redraw: true,
+            scroll_offset: ScrollOffset::default(),
         }
     }
 
     pub fn render(&mut self) -> Result<(), Error> {
         Terminal::move_cursor_to(CursorPosition { row:0, col: 0 })?;
 
-        for row in 0..self.size.rows {
+        let start_row = self.scroll_offset.rows;
+        let end_row = self.scroll_offset.rows + self.size.rows;
+        let start_col = self.scroll_offset.cols;
+
+        for row in start_row..end_row {
             let mut line =
                 if let Some(line) = self.buffer.lines.get(row as usize) {
-                    line.clone()
+                    if let Some(line_slice) = line.get(start_col..) {
+                        line_slice.to_string()
+                    } else {
+                        "".to_string()
+                    }
                 } else if self.buffer.is_empty() && row == self.size.rows / 3 {
                     let message = format!("{NAME} editor -- {VERSION}");
                     let padding = (self.size.cols as usize - message.len()) / 2;
@@ -57,7 +73,7 @@ impl View {
             line.truncate(self.size.cols as usize);
             Terminal::clear_line()?;
             Terminal::print(&line)?;
-            if row.saturating_add(1) < self.size.rows {
+            if row.saturating_add(1) < end_row {
                 Terminal::print("\r\n")?;
             }
         }
@@ -95,16 +111,37 @@ impl View {
                 self.location.row = 0;
             },
             KeyCode::PageDown => {
-                self.location.row = self.size.rows as usize - 1;
+                self.location.row = self.scroll_offset.rows + self.size.rows as usize;
             },
             KeyCode::Home => {
                 self.location.col = 0;
             },
             KeyCode::End => {
-                self.location.col = self.size.cols as usize - 1;
+                self.location.col = self.scroll_offset.cols + self.size.cols as usize;
             },
             _ => (),
         }
+
+        self.handle_scroll();
+    }
+
+    fn handle_scroll(&mut self) {
+        if self.location.col >= self.scroll_offset.cols + self.size.cols || self.location.col < self.scroll_offset.cols {
+            self.scroll_offset.cols = self.location.col.saturating_sub(self.size.cols);
+            self.needs_redraw = true;
+        }
+        if self.location.row >= self.scroll_offset.rows + self.size.rows || self.location.row < self.scroll_offset.rows {
+            self.scroll_offset.rows = self.location.row.saturating_sub(self.size.rows);
+            self.needs_redraw = true;
+        }
+        // if self.location.row < self.scroll_offset.rows {
+        //     self.scroll_offset.rows = self.scroll_offset.rows.saturating_sub(1);
+        //     self.needs_redraw = true;
+        // }
+        // if self.location.col < self.scroll_offset.cols {
+        //     self.scroll_offset.cols = self.scroll_offset.cols.saturating_sub(1);
+        //     self.needs_redraw = true;
+        // }
     }
 }
 

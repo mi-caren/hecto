@@ -39,8 +39,8 @@ impl Terminal {
         let terminal_size = terminal::size().unwrap();
         Self {
             size: Size {
-                rows: terminal_size.1,
-                cols: terminal_size.0,
+                rows: terminal_size.1 as usize,
+                cols: terminal_size.0 as usize,
             },
             // cursor: Cursor::default(),
         }
