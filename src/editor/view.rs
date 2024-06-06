@@ -106,7 +106,9 @@ impl View {
                 self.location.row = self.location.row.saturating_sub(1);
             },
             Direction::Down => {
-                self.location.row = self.location.row.saturating_add(1);
+                if self.location.row < self.buffer.lines.len() - 1 {
+                    self.location.row = self.location.row.saturating_add(1);
+                }
             },
             Direction::PageUp => {
                 self.location.row = 0;
