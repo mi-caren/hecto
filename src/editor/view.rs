@@ -126,12 +126,20 @@ impl View {
     }
 
     pub fn handle_scroll(&mut self) {
-        if self.location.col >= self.scroll_offset.cols + self.size.cols || self.location.col < self.scroll_offset.cols {
-            self.scroll_offset.cols = self.location.col.saturating_sub(self.size.cols);
+        if self.location.col >= self.scroll_offset.cols + self.size.cols {
+            self.scroll_offset.cols = self.location.col.saturating_sub(self.size.cols) + 1;
             self.needs_redraw = true;
         }
-        if self.location.row >= self.scroll_offset.rows + self.size.rows || self.location.row < self.scroll_offset.rows {
-            self.scroll_offset.rows = self.location.row.saturating_sub(self.size.rows);
+        if self.location.col < self.scroll_offset.cols {
+            self.scroll_offset.cols = self.location.col;
+            self.needs_redraw = true;
+        }
+        if self.location.row >= self.scroll_offset.rows + self.size.rows {
+            self.scroll_offset.rows = self.location.row.saturating_sub(self.size.rows) + 1;
+            self.needs_redraw = true;
+        }
+        if self.location.row < self.scroll_offset.rows {
+            self.scroll_offset.rows = self.location.row;
             self.needs_redraw = true;
         }
     }
