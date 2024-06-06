@@ -22,7 +22,7 @@ pub struct Terminal {
 // }
 
 #[derive(Copy, Clone, Default)]
-pub struct Position {
+pub struct CursorPosition {
     pub row: u16,
     pub col: u16,
 }
@@ -94,7 +94,7 @@ impl Terminal {
         Ok(())
     }
 
-    pub fn move_cursor_to(position: Position) -> Result<(), Error> {
+    pub fn move_cursor_to(position: CursorPosition) -> Result<(), Error> {
         // self.cursor.position = position;
         queue!(stdout(), MoveTo(position.col, position.row))
     }

@@ -1,5 +1,5 @@
 use crate::editor::utils::Size;
-use crate::editor::terminal::{Terminal, Position};
+use crate::editor::terminal::{Terminal, CursorPosition};
 use crate::editor::{NAME, VERSION};
 
 use crossterm::event::KeyCode;
@@ -38,7 +38,7 @@ impl View {
     }
 
     pub fn render(&mut self) -> Result<(), Error> {
-        Terminal::move_cursor_to(Position { row:0, col: 0 })?;
+        Terminal::move_cursor_to(CursorPosition { row:0, col: 0 })?;
 
         for row in 0..self.size.rows {
             let mut line =

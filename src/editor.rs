@@ -2,7 +2,7 @@ mod terminal;
 mod utils;
 mod view;
 
-use terminal::{Terminal, Position};
+use terminal::{Terminal, CursorPosition};
 use view::View;
 
 use std::io::Error;
@@ -39,7 +39,7 @@ impl Editor {
         let terminal = Terminal::new();
         let terminal_size = terminal.size;
         Self {
-            terminal: terminal,
+            terminal,
             view: View::new(terminal_size),
             should_quit: false,
         }
@@ -125,7 +125,7 @@ impl Editor {
             if self.view.needs_redraw {
                 self.view.render()?;
             }
-            Terminal::move_cursor_to(Position {
+            Terminal::move_cursor_to(CursorPosition {
                 row: self.view.location.row as u16,
                 col: self.view.location.col as u16,
             })?;
@@ -140,7 +140,7 @@ impl Editor {
 
     fn print_goodbye(&mut self) -> Result<(), Error> {
         Terminal::clear_screen()?;
-        Terminal::move_cursor_to(Position { row: 0, col: 0 })?;
+        Terminal::move_cursor_to(CursorPosition { row: 0, col: 0 })?;
         Terminal::print("Goodbye!\r\n")
     }
 }
