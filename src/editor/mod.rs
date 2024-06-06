@@ -41,6 +41,12 @@ struct Buffer {
 
 impl Editor {
     pub fn run(&mut self) {
+        let current_hook = std::panic::take_hook();
+        std::panic::set_hook(Box::new(move |panic_info| {
+            let _ = Terminal::terminate();
+            current_hook(panic_info);
+        }));
+
         if let Err(error) = Terminal::initialize() {
             Terminal::log_error("Unable to initialize terminal", error);
             return;
