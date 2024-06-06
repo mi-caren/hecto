@@ -1,6 +1,6 @@
 use crossterm::{queue, Command};
 use crossterm::cursor::{Hide, Show, MoveTo};
-use crossterm::terminal;
+use crossterm::terminal::{self, EnterAlternateScreen, LeaveAlternateScreen};
 use crossterm::style::Print;
 use crossterm::terminal::{Clear, ClearType};
 
@@ -50,6 +50,7 @@ impl Drop for Terminal {
 impl Terminal {
     pub fn initialize() -> Result<(), Error> {
         terminal::enable_raw_mode()?;
+        Self::queue_command(EnterAlternateScreen)?;
         Self::hide_cursor()?;
         Self::clear_screen()?;
         Self::show_cursor()?;
@@ -74,7 +75,9 @@ impl Terminal {
     }
 
     pub fn terminate() -> Result<(), Error> {
-        terminal::disable_raw_mode()
+        terminal::disable_raw_mode()?;
+        Self::queue_command(LeaveAlternateScreen)?;
+        stdout().flush()
     }
 
     pub fn clear_screen() -> Result<(), Error> {
