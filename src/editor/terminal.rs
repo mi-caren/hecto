@@ -70,6 +70,17 @@ impl Terminal {
         Self::queue_command(Print(str))
     }
 
+    pub fn log_error(str: &str, error: Error) {
+        if let Err(_) = Self::queue_command(LeaveAlternateScreen) {
+            return;
+        }
+        let _ = Self::print(&format!("{str}: {error}\n\r"));
+        if let Err(inner_error) = Self::queue_command(EnterAlternateScreen) {
+            eprint!("Error: {inner_error}; While logging error: {error}\n\r");
+        }
+        assert!(if let Ok(_) = stdout().flush() { true } else { false });
+    }
+
     pub fn clear_line() -> Result<(), Error> {
         Self::queue_command(Clear(ClearType::CurrentLine))
     }
