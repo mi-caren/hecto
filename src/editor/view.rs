@@ -133,6 +133,10 @@ impl View {
             },
         }
 
+        if self.location.col > self.buffer.lines[self.location.row].len() {
+            self.location.col = self.buffer.lines[self.location.row].len();
+        }
+
         self.handle_scroll();
     }
 
