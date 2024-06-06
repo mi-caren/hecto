@@ -95,7 +95,9 @@ impl View {
     pub fn move_point(&mut self, direction: Direction) {
         match direction {
             Direction::Right => {
-                self.location.col = self.location.col.saturating_add(1);
+                if self.location.col < self.buffer.lines[self.location.row].len() {
+                    self.location.col = self.location.col.saturating_add(1);
+                }
             },
             Direction::Left => {
                 self.location.col = self.location.col.saturating_sub(1);
