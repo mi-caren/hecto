@@ -3,6 +3,7 @@ use crate::editor::terminal::{Terminal, CursorPosition};
 use crate::editor::{NAME, VERSION};
 
 use std::io::Error;
+use std::cmp::min;
 
 
 
@@ -111,16 +112,24 @@ impl View {
                 }
             },
             Direction::PageUp => {
-                self.location.row = 0;
+                if self.location.row > self.scroll_offset.rows {
+                    self.location.row = self.scroll_offset.rows;
+                } else {
+                    self.location.row = self.location.row.saturating_sub(self.size.rows);
+                }
             },
             Direction::PageDown => {
-                self.location.row = self.scroll_offset.rows + self.size.rows - 1 as usize;
+                if self.location.row < self.scroll_offset.rows + self.size.rows - 1 {
+                    self.location.row = self.scroll_offset.rows + self.size.rows - 1 as usize;
+                } else {
+                    self.location.row = min(self.location.row.saturating_add(self.size.rows), self.buffer.lines.len() - 1);
+                }
             },
             Direction::Home => {
                 self.location.col = 0;
             },
             Direction::End => {
-                self.location.col = self.scroll_offset.cols + self.size.cols - 1 as usize;
+                self.location.col = self.buffer.lines[self.location.row].len();
             },
         }
 
