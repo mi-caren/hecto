@@ -5,6 +5,8 @@ use crate::editor::{NAME, VERSION};
 use std::io::Error;
 use std::cmp::min;
 
+use unicode_segmentation::UnicodeSegmentation;
+
 
 
 pub struct View {
@@ -93,12 +95,16 @@ impl View {
         Ok(())
     }
 
+    fn get_curr_row_len(&self) -> usize {
+        self.buffer.lines[self.location.row].graphemes(true).collect::<Vec<&str>>().len()
+    }
+
     pub fn move_point(&mut self, direction: Direction) {
         match direction {
             Direction::Right => {
-                if self.location.col < self.buffer.lines[self.location.row].len() {
+                if self.location.col < self.get_curr_row_len() {
                     self.location.col = self.location.col.saturating_add(1);
-                } else if self.location.col == self.buffer.lines[self.location.row].len() && self.location.row < self.buffer.lines.len() - 1 {
+                } else if self.location.col == self.get_curr_row_len() && self.location.row < self.buffer.lines.len() - 1 {
                     self.location.row = self.location.row.saturating_add(1);
                     self.location.col = 0;
                 }
@@ -106,7 +112,7 @@ impl View {
             Direction::Left => {
                 if self.location.col == 0 {
                     self.location.row = self.location.row.saturating_sub(1);
-                    self.location.col = self.buffer.lines[self.location.row].len();
+                    self.location.col = self.get_curr_row_len();
                 } else {
                     self.location.col = self.location.col.saturating_sub(1);
                 }
@@ -137,12 +143,12 @@ impl View {
                 self.location.col = 0;
             },
             Direction::End => {
-                self.location.col = self.buffer.lines[self.location.row].len();
+                self.location.col = self.get_curr_row_len();
             },
         }
 
-        if self.location.col > self.buffer.lines[self.location.row].len() {
-            self.location.col = self.buffer.lines[self.location.row].len();
+        if self.location.col > self.get_curr_row_len() {
+            self.location.col = self.get_curr_row_len();
         }
 
         self.handle_scroll();
